@@ -38,28 +38,6 @@ Only one valid answer exists.`,
         isHidden: true
       }
     ],
-    templateCode: [
-      {
-        language: "javascript",
-        code: `function twoSum(nums, target) {
-    // Write your code here
-};`
-      },
-      {
-        language: "python",
-        code: `def twoSum(nums, target):
-    # Write your code here
-    pass`
-      },
-      {
-        language: "java",
-        code: `class Solution {
-    public int[] twoSum(int[] nums, int target) {
-        // Write your code here
-    }
-}`
-      }
-    ],
     tags: ["Array", "Hash Table"]
   },
   {
@@ -90,28 +68,6 @@ F(n) = F(n-1) + F(n-2), for n > 1`,
         input: "20",
         expectedOutput: "6765",
         isHidden: true
-      }
-    ],
-    templateCode: [
-      {
-        language: "javascript",
-        code: `function fibonacci(n) {
-    // Write your code here
-};`
-      },
-      {
-        language: "python",
-        code: `def fibonacci(n):
-    # Write your code here
-    pass`
-      },
-      {
-        language: "java",
-        code: `class Solution {
-    public int fibonacci(int n) {
-        // Write your code here
-    }
-}`
       }
     ],
     tags: ["Dynamic Programming", "Math", "Recursion"]

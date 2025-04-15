@@ -1,9 +1,18 @@
 const mongoose = require('mongoose');
 
+const codeSubmissionSchema = new mongoose.Schema({
+  problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'CodingProblem', required: true },
+  code: { type: String, required: true },
+  language: { type: String, required: true },
+  submittedAt: { type: Date, default: Date.now }
+});
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  solvedProblems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CodingProblem' }],
+  codeSubmissions: [codeSubmissionSchema],
   profile: {
     photo: {
       data: Buffer,
