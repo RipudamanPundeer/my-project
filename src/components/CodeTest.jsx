@@ -140,8 +140,13 @@ function CodeTest() {
                   wordWrap: 'on',
                   scrollBeyondLastLine: false,
                   renderLineHighlight: 'all',
-                  formatOnPaste: true,
-                  formatOnType: true,
+                  formatOnPaste: false,
+                  formatOnType: false,
+                  autoIndent: 'advanced',
+                  tabSize: 4,
+                  detectIndentation: true,
+                  useTabStops: true,
+                  insertSpaces: true
                 }}
               />
             </div>
