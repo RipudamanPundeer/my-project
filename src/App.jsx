@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import TestPage from "./pages/TestPage";
 import ResultsPage from "./pages/ResultsPage";
 import AllResultsPage from "./pages/AllResultsPage";
+import Profile from "./pages/Profile";
 import { useContext } from "react";
 
 function ProtectedRoute({ children }) {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/test/:id" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
           <Route path="/results/:id" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
           <Route path="/results" element={<ProtectedRoute><AllResultsPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

@@ -14,6 +14,13 @@ function AppNavbar() {
 
   const closeNav = () => setExpanded(false);
 
+  const getProfileImage = () => {
+    if (user?.profile?.photo) {
+      return `http://localhost:5000/${user.profile.photo}`;
+    }
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+  };
+
   return (
     <Navbar 
       bg="dark" 
@@ -73,17 +80,18 @@ function AppNavbar() {
                     className="user-dropdown-toggle"
                   >
                     <img
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
-                      width="24"
-                      height="24"
+                      src={getProfileImage()}
+                      width="32"
+                      height="32"
                       className="rounded-circle me-2"
                       alt={user.name}
+                      style={{ objectFit: 'cover' }}
                     />
                     <span className="d-none d-lg-inline">{user.name}</span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu align="end" className="dropdown-menu-dark">
-                    <Dropdown.Item as={Link} to="/home" onClick={closeNav}>
+                    <Dropdown.Item as={Link} to="/profile" onClick={closeNav}>
                       <i className="fas fa-user me-2"></i>
                       Profile
                     </Dropdown.Item>
