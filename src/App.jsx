@@ -10,7 +10,10 @@ import TestPage from "./pages/TestPage";
 import ResultsPage from "./pages/ResultsPage";
 import AllResultsPage from "./pages/AllResultsPage";
 import Profile from "./pages/Profile";
+import CodeTest from "./components/CodeTest";
 import { useContext } from "react";
+import CodingProblems from "./pages/CodingProblems";
+import CodingProblem from "./pages/CodingProblem";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useContext(AuthContext);
@@ -36,6 +39,9 @@ function App() {
           <Route path="/results/:id" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
           <Route path="/results" element={<ProtectedRoute><AllResultsPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/code-test" element={<ProtectedRoute><CodeTest /></ProtectedRoute>} />
+          <Route path="/coding-problems" element={<ProtectedRoute><CodingProblems /></ProtectedRoute>} />
+          <Route path="/coding-problem/:id" element={<ProtectedRoute><CodingProblem /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

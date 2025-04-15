@@ -8,13 +8,14 @@ const authRoutes = require('./routes/authRoutes');
 const testRoutes = require('./routes/testRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const codeRoutes = require('./routes/codeRoutes');  
+const codingProblemRoutes = require('./routes/codingProblemRoutes');  // Add this line
 
 dotenv.config();
 const app = express();
 
 // Middleware
 app.use(cors());
-// Increase payload size limit for JSON and URL-encoded data
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -26,6 +27,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api', codeRoutes);  
+app.use('/api/coding-problems', codingProblemRoutes);  // Add this line
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");

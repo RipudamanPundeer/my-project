@@ -180,7 +180,7 @@ function Home() {
 
         <h2 className="text-center mt-5 mb-4">Featured Content</h2>
         <Row className="g-4">
-          <Col md={6} lg={4}>
+          <Col md={6} lg={3}>
             <Card className="custom-card h-100">
               <Card.Body>
                 <div className="text-center mb-3">
@@ -204,7 +204,7 @@ function Home() {
               </Card.Body>
             </Card>
           </Col>
-          <Col md={6} lg={4}>
+          <Col md={6} lg={3}>
             <Card className="custom-card h-100">
               <Card.Body>
                 <div className="text-center mb-3">
@@ -228,26 +228,42 @@ function Home() {
               </Card.Body>
             </Card>
           </Col>
-          <Col md={6} lg={4}>
+          <Col md={6} lg={3}>
             <Card className="custom-card h-100">
               <Card.Body>
                 <div className="text-center mb-3">
-                  <img
-                    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg"
-                    alt="Node.js"
-                    style={{ width: '60px' }}
-                  />
+                  <i className="fas fa-code fa-3x text-primary"></i>
                 </div>
-                <Card.Title>Backend Development</Card.Title>
+                <Card.Title>Coding Problems</Card.Title>
                 <Card.Text>
-                  Practice Node.js, Express, and MongoDB concepts to strengthen your backend development skills.
+                  Practice algorithmic problems with our curated collection of coding challenges. Test your solutions in real-time.
                 </Card.Text>
                 <Button 
                   variant="primary" 
                   className="w-100"
-                  onClick={() => navigateToTest('node')}
+                  onClick={() => navigate('/coding-problems')}
                 >
-                  Start Practice
+                  View Problems
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={6} lg={3}>
+            <Card className="custom-card h-100">
+              <Card.Body>
+                <div className="text-center mb-3">
+                  <i className="fas fa-laptop-code fa-3x text-primary"></i>
+                </div>
+                <Card.Title>Code Editor</Card.Title>
+                <Card.Text>
+                  Write and test code in multiple languages. Perfect for practicing coding problems and algorithms.
+                </Card.Text>
+                <Button 
+                  variant="primary" 
+                  className="w-100"
+                  onClick={() => navigate('/code-test')}
+                >
+                  Open Editor
                 </Button>
               </Card.Body>
             </Card>

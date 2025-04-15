@@ -82,11 +82,27 @@ function AppNavbar() {
                 </Nav.Link>
                 <Nav.Link 
                   as={Link} 
+                  to="/coding-problems" 
+                  className={getNavLinkClass('/coding-problems')}
+                  onClick={closeNav}
+                >
+                  Coding Problems
+                </Nav.Link>
+                <Nav.Link 
+                  as={Link} 
                   to="/results" 
                   className={getNavLinkClass('/results')}
                   onClick={closeNav}
                 >
                   Results
+                </Nav.Link>
+                <Nav.Link 
+                  as={Link} 
+                  to="/code-test" 
+                  className={getNavLinkClass('/code-test')}
+                  onClick={closeNav}
+                >
+                  Code Editor
                 </Nav.Link>
                 <Dropdown className="nav-dropdown ms-lg-2">
                   <Dropdown.Toggle 
