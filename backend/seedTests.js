@@ -9,6 +9,7 @@ const sampleTests = [
     {
       title: "JavaScript Basics",
       description: "Test your fundamental knowledge of JavaScript.",
+      duration: 20, // 20 minutes
       questions: [
         {
           questionText: "What is the output of `typeof NaN` in JavaScript?",
@@ -75,6 +76,7 @@ const sampleTests = [
     {
       title: "ReactJS Fundamentals",
       description: "Assess your knowledge of ReactJS.",
+      duration: 15, // 15 minutes
       questions: [
         {
           questionText: "What is React primarily used for?",
@@ -106,6 +108,7 @@ const sampleTests = [
     {
       title: "MongoDB Essentials",
       description: "Evaluate your knowledge of MongoDB.",
+      duration: 10, // 10 minutes
       questions: [
         {
           questionText: "MongoDB is a...",
@@ -127,6 +130,7 @@ const sampleTests = [
     {
       title: "Node.js & Express",
       description: "Assess your knowledge of Node.js and Express.",
+      duration: 10, // 10 minutes
       questions: [
         {
           questionText: "Which module is used to create an HTTP server in Node.js?",
