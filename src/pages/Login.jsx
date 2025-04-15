@@ -28,8 +28,13 @@ function Login() {
       const userData = response.data.user;
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(userData));
+      axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
 
-      setUser(userData);
+      // Fetch user profile immediately after login
+      const profileResponse = await axios.get('http://localhost:5000/api/profile');
+      const updatedUser = { ...userData, profile: profileResponse.data.profile };
+      setUser(updatedUser);
+
       setShowModal(true);
       setTimeout(() => {
         setShowModal(false);

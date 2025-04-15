@@ -1,12 +1,14 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Navbar, Nav, Container, Button, Dropdown } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 function AppNavbar() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, profileUpdateKey } = useContext(AuthContext);
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [currentPhotoSrc, setCurrentPhotoSrc] = useState(null); // Local state for image src
 
   const getNavLinkClass = (path) => {
     return `nav-link ${location.pathname === path ? 'active' : ''}`;
@@ -14,11 +16,24 @@ function AppNavbar() {
 
   const closeNav = () => setExpanded(false);
 
-  const getProfileImage = () => {
-    if (user?.profile?.photo) {
-      return `http://localhost:5000/${user.profile.photo}`;
+  // Effect to update the local image source when profile key changes
+  useEffect(() => {
+    setImageError(false); // Reset error on update
+    if (user?.profile?.photo?.data && user?.id) {
+      // Construct the URL with the update key as timestamp
+      const newSrc = `http://localhost:5000/api/profile/photo/${user.id}?t=${profileUpdateKey}`;
+      setCurrentPhotoSrc(newSrc);
+    } else {
+      setCurrentPhotoSrc(null); // Clear src if no photo data
     }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+  }, [profileUpdateKey, user?.id, user?.profile?.photo?.data]); // Depend on key and user photo data
+
+  const getProfileImage = () => {
+    if (currentPhotoSrc && !imageError) {
+      return currentPhotoSrc;
+    }
+    // Fallback to UI Avatars
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
   };
 
   return (
@@ -80,12 +95,19 @@ function AppNavbar() {
                     className="user-dropdown-toggle"
                   >
                     <img
-                      src={getProfileImage()}
+                      // Key still useful for React reconciliation, based on whether we have a src
+                      key={currentPhotoSrc || 'avatar-fallback'}
+                      src={getProfileImage()} // Use the local state for src
                       width="32"
                       height="32"
                       className="rounded-circle me-2"
                       alt={user.name}
                       style={{ objectFit: 'cover' }}
+                      onError={() => {
+                        setImageError(true);
+                        setCurrentPhotoSrc(null); // Clear src on error to prevent retry loops
+                      }}
+                      loading="eager" // Keep eager loading for navbar image
                     />
                     <span className="d-none d-lg-inline">{user.name}</span>
                   </Dropdown.Toggle>

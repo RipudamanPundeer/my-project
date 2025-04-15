@@ -5,8 +5,16 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   profile: {
-    photo: { type: String },
-    resume: { type: String },
+    photo: {
+      data: Buffer,
+      contentType: String,
+      filename: String
+    },
+    resume: {
+      data: Buffer,
+      contentType: String,
+      filename: String
+    },
     college: { type: String },
     degree: { type: String },
     graduationYear: { type: Number },

@@ -1,29 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = file.fieldname === 'photo' ? 'uploads/photos' : 'uploads/resumes';
-    // Create directories if they don't exist
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads');
-    }
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
@@ -78,7 +60,7 @@ router.put('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Upload profile photo
+// Add or update profile photo
 router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) {
@@ -87,7 +69,15 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: { 'profile.photo': req.file.path } },
+      {
+        $set: {
+          'profile.photo': {
+            data: req.file.buffer,
+            contentType: req.file.mimetype,
+            filename: req.file.originalname
+          }
+        }
+      },
       { new: true }
     ).select('-password');
 
@@ -97,7 +87,7 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
   }
 });
 
-// Upload resume
+// Add or update resume
 router.post('/resume', authMiddleware, upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
@@ -106,12 +96,83 @@ router.post('/resume', authMiddleware, upload.single('resume'), async (req, res)
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: { 'profile.resume': req.file.path } },
+      {
+        $set: {
+          'profile.resume': {
+            data: req.file.buffer,
+            contentType: req.file.mimetype,
+            filename: req.file.originalname
+          }
+        }
+      },
       { new: true }
     ).select('-password');
 
     res.json(user);
   } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Serve profile photo
+router.get('/photo/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user || !user.profile.photo || !user.profile.photo.data) {
+      return res.status(404).json({ message: 'Photo not found' });
+    }
+
+    res.set('Content-Type', user.profile.photo.contentType);
+    res.send(user.profile.photo.data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Serve resume
+router.get('/resume/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user || !user.profile.resume || !user.profile.resume.data) {
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+
+    res.set('Content-Type', user.profile.resume.contentType);
+    res.set('Content-Disposition', `inline; filename="${user.profile.resume.filename}"`);
+    res.send(user.profile.resume.data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Remove profile photo
+router.delete('/photo', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $unset: { 'profile.photo': "" } }, // Use $unset to remove the field
+      { new: true }
+    ).select('-password');
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error removing photo:", error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Remove resume
+router.delete('/resume', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $unset: { 'profile.resume': "" } }, // Use $unset to remove the field
+      { new: true }
+    ).select('-password');
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error removing resume:", error);
     res.status(500).json({ message: 'Server Error' });
   }
 });

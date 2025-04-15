@@ -21,7 +21,9 @@ function Profile() {
   });
 
   const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [resume, setResume] = useState(null);
+  const [resumeName, setResumeName] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +37,16 @@ function Profile() {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setProfile(response.data);
+      if (response.data.profile?.photo) {
+        setPhotoPreview(`http://localhost:5000/api/profile/photo/${response.data._id}`);
+      } else {
+        setPhotoPreview(null); // Ensure preview is null if no photo
+      }
+      if (response.data.profile?.resume) {
+        setResumeName(response.data.profile.resume.filename);
+      } else {
+        setResumeName(''); // Ensure name is empty if no resume
+      }
       setLoading(false);
     } catch (error) {
       setMessage({ text: 'Failed to load profile', type: 'danger' });
@@ -73,52 +85,101 @@ function Profile() {
   };
 
   const handlePhotoChange = (e) => {
-    setPhoto(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleResumeChange = (e) => {
-    setResume(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setResume(file);
+      setResumeName(file.name);
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!photo) return;
+    const formData = new FormData();
+    formData.append('photo', photo);
+    setMessage({ text: '', type: '' });
+    try {
+      await axios.post('http://localhost:5000/api/profile/photo', formData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setMessage({ text: 'Photo updated successfully! Refreshing...', type: 'success' });
+      window.location.reload(); // Force a page reload
+    } catch (error) {
+      setMessage({ text: 'Failed to update photo', type: 'danger' });
+    }
+  };
+
+  const handleResumeUpload = async () => {
+    if (!resume) return;
+    const formData = new FormData();
+    formData.append('resume', resume);
+    setMessage({ text: '', type: '' });
+    try {
+      await axios.post('http://localhost:5000/api/profile/resume', formData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setMessage({ text: 'Resume updated successfully! Refreshing...', type: 'success' });
+      window.location.reload(); // Force a page reload
+    } catch (error) {
+      setMessage({ text: 'Failed to update resume', type: 'danger' });
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setMessage({ text: '', type: '' });
+    try {
+      await axios.delete('http://localhost:5000/api/profile/photo', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setMessage({ text: 'Photo removed successfully! Refreshing...', type: 'success' });
+      window.location.reload(); // Force a page reload
+    } catch (error) {
+      setMessage({ text: 'Failed to remove photo', type: 'danger' });
+    }
+  };
+
+  const handleRemoveResume = async () => {
+    setMessage({ text: '', type: '' });
+    try {
+      await axios.delete('http://localhost:5000/api/profile/resume', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setMessage({ text: 'Resume removed successfully! Refreshing...', type: 'success' });
+      window.location.reload(); // Force a page reload
+    } catch (error) {
+      setMessage({ text: 'Failed to remove resume', type: 'danger' });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: '', type: '' });
     try {
-      // Update profile information
-      const response = await axios.put('http://localhost:5000/api/profile', profile.profile, {
+      // Update profile text information
+      await axios.put('http://localhost:5000/api/profile', profile.profile, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-
-      // Upload photo if selected
-      if (photo) {
-        const formData = new FormData();
-        formData.append('photo', photo);
-        const photoResponse = await axios.post('http://localhost:5000/api/profile/photo', formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        response.data = photoResponse.data;
-      }
-
-      // Upload resume if selected
-      if (resume) {
-        const formData = new FormData();
-        formData.append('resume', resume);
-        const resumeResponse = await axios.post('http://localhost:5000/api/profile/resume', formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        response.data = resumeResponse.data;
-      }
-
-      updateUserProfile(response.data);
-      setMessage({ text: 'Profile updated successfully!', type: 'success' });
-      fetchProfile();
+      setMessage({ text: 'Profile details updated successfully! Refreshing...', type: 'success' });
+      window.location.reload(); // Force a page reload
     } catch (error) {
-      setMessage({ text: 'Failed to update profile', type: 'danger' });
+      setMessage({ text: 'Failed to update profile details', type: 'danger' });
     }
   };
 
@@ -138,47 +199,85 @@ function Profile() {
           )}
 
           <Form onSubmit={handleSubmit}>
+            {/* First Row - Photo and Resume */}
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Profile Photo</Form.Label>
-                  <Form.Control
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                  />
-                  {profile.profile?.photo && (
-                    <img
-                      src={`http://localhost:5000/${profile.profile.photo}`}
-                      alt="Profile"
-                      className="mt-2"
-                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                  <div className="d-flex align-items-center mb-2">
+                    {photoPreview ? (
+                      <img
+                        src={photoPreview}
+                        alt="Profile"
+                        className="me-3"
+                        style={{
+                          width: '100px',
+                          height: '100px',
+                          objectFit: 'cover',
+                          borderRadius: '50%'
+                        }}
+                      />
+                    ) : (
+                      <div className="me-3" style={{ width: '100px', height: '100px', border: '1px dashed #ccc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
+                        No Photo
+                      </div>
+                    )}
+                    <Form.Control
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      style={{ flex: 1 }}
                     />
+                  </div>
+                  <Button variant="primary" onClick={handlePhotoUpload} disabled={!photo} className="me-2">
+                    {profile.profile?.photo ? 'Update Photo' : 'Upload Photo'}
+                  </Button>
+                  {profile.profile?.photo && (
+                    <Button variant="outline-danger" onClick={handleRemovePhoto}>
+                      Remove Photo
+                    </Button>
                   )}
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Resume</Form.Label>
-                  <Form.Control
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleResumeChange}
-                  />
+                  <div className="d-flex align-items-center mb-2">
+                    {resumeName && profile._id ? (
+                      <div className="me-3">
+                        <a
+                          href={`http://localhost:5000/api/profile/resume/${profile._id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-decoration-none"
+                        >
+                          <i className="fas fa-file-pdf me-2"></i>
+                          {resumeName}
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="me-3 text-muted">No Resume Uploaded</div>
+                    )}
+                    <Form.Control
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleResumeChange}
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+                  <Button variant="primary" onClick={handleResumeUpload} disabled={!resume} className="me-2">
+                    {profile.profile?.resume ? 'Update Resume' : 'Upload Resume'}
+                  </Button>
                   {profile.profile?.resume && (
-                    <a
-                      href={`http://localhost:5000/${profile.profile.resume}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 d-block"
-                    >
-                      View Current Resume
-                    </a>
+                    <Button variant="outline-danger" onClick={handleRemoveResume}>
+                      Remove Resume
+                    </Button>
                   )}
                 </Form.Group>
               </Col>
             </Row>
 
+            {/* Second Row - College and Degree */}
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -204,6 +303,7 @@ function Profile() {
               </Col>
             </Row>
 
+            {/* Third Row - Graduation Year and Phone */}
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -229,6 +329,7 @@ function Profile() {
               </Col>
             </Row>
 
+            {/* Skills Section */}
             <Form.Group className="mb-3">
               <Form.Label>Skills (comma-separated)</Form.Label>
               <Form.Control
@@ -239,6 +340,7 @@ function Profile() {
               />
             </Form.Group>
 
+            {/* Bio Section */}
             <Form.Group className="mb-3">
               <Form.Label>Bio</Form.Label>
               <Form.Control
@@ -250,6 +352,7 @@ function Profile() {
               />
             </Form.Group>
 
+            {/* Fourth Row - Social Links */}
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
