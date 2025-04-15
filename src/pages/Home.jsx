@@ -64,6 +64,7 @@ function Home() {
     <div className="page-container">
       <div className="hero-section">
         <div className="container">
+        <h1>&nbsp;</h1>
           <Row className="align-items-center">
             <Col md={6} className="text-md-start">
               <div className="d-flex align-items-center mb-4">
