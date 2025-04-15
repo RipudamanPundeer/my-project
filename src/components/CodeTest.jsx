@@ -3,12 +3,77 @@ import Editor from '@monaco-editor/react';
 import axios from 'axios';
 import { Button, Container, Alert, Form, Card } from 'react-bootstrap';
 
+// Boilerplate templates for different languages
+const TEMPLATES = {
+  javascript: `// JavaScript (Node.js)
+function main() {
+    // Your code here
+    console.log("Hello, World!");
+}
+
+main();`,
+  python: `# Python
+def main():
+    # Your code here
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    main()`,
+  java: `// Java
+public class Main {
+    public static void main(String[] args) {
+        // Your code here
+        System.out.println("Hello, World!");
+    }
+}`,
+  cpp: `// C++
+#include <iostream>
+using namespace std;
+
+int main() {
+    // Your code here
+    cout << "Hello, World!" << endl;
+    return 0;
+}`,
+  csharp: `// C#
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        // Your code here
+        Console.WriteLine("Hello, World!");
+    }
+}`,
+  ruby: `# Ruby
+def main
+    # Your code here
+    puts "Hello, World!"
+end
+
+main`,
+  go: `// Go
+package main
+
+import "fmt"
+
+func main() {
+    // Your code here
+    fmt.Println("Hello, World!")
+}`
+};
+
 function CodeTest() {
-  const [code, setCode] = useState('// Write your code here');
-  const [input, setInput] = useState(''); // Add state for user input
+  const [code, setCode] = useState(TEMPLATES.javascript);
+  const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('javascript');
+
+  const handleLanguageChange = (e) => {
+    const newLanguage = e.target.value;
+    setLanguage(newLanguage);
+    setCode(TEMPLATES[newLanguage]);
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -16,7 +81,7 @@ function CodeTest() {
       const response = await axios.post('http://localhost:5000/api/execute', { 
         code,
         language,
-        input // Include input in the request
+        input
       });
       setOutput(response.data.output);
     } catch (error) {
@@ -39,13 +104,17 @@ function CodeTest() {
             <div className="d-flex justify-content-between align-items-center mb-3">
               <Form.Select 
                 value={language} 
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={handleLanguageChange}
                 className="w-auto"
                 style={{ minWidth: '200px' }}
               >
                 <option value="javascript">JavaScript (Node.js)</option>
                 <option value="python">Python</option>
                 <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="csharp">C#</option>
+                <option value="ruby">Ruby</option>
+                <option value="go">Go</option>
               </Form.Select>
               <Button 
                 variant="primary"
@@ -77,7 +146,6 @@ function CodeTest() {
               />
             </div>
 
-            {/* Add input textarea */}
             <Form.Group className="mb-3">
               <Form.Label>Input (stdin)</Form.Label>
               <Form.Control

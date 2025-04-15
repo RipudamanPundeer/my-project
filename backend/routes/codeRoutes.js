@@ -4,9 +4,13 @@ const axios = require('axios');
 
 // Language ID mapping for Judge0 API
 const LANGUAGE_IDS = {
-  javascript: 63, // Node.js
-  python: 71,     // Python 3
-  java: 62        // Java
+  javascript: 63,  // Node.js
+  python: 71,      // Python 3
+  java: 62,        // Java
+  cpp: 54,         // C++
+  csharp: 51,      // C#
+  ruby: 72,        // Ruby
+  go: 60           // Go
 };
 
 router.post('/execute', async (req, res) => {
