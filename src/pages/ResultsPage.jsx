@@ -40,7 +40,7 @@ function ResultsPage() {
             justifyContent: 'center',
             flexDirection: 'column'
           }}>
-            <h3 style={{ color: getScoreColor(), margin: 0 }}>{scorePercentage}%</h3>
+            <h3 style={{ color: getScoreColor(), margin: 0 }}>{scorePercentage.toPrecision(4)}%</h3>
             <small>Score</small>
           </div>
         </div>

@@ -47,8 +47,9 @@ function Dashboard() {
   return (
     <div className="page-container">
       <div className="hero-section">
-        <h2>Welcome, {user.name}! 🚀</h2>
-        <p>Select a mock test to begin your assessment</p>
+        <h1>&nbsp;</h1>
+        <h2>Welcome, {user.name}! </h2>
+        <p className="lead mb-4">Ready to challenge yourself? Choose from our expert-curated tech assessments below</p>
       </div>
 
       <Container>

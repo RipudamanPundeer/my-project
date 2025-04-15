@@ -53,6 +53,7 @@ function AllResultsPage() {
   return (
     <div className="page-container">
       <div className="hero-section">
+        <h1>&nbsp;</h1>
         <h2>Your Learning Progress</h2>
         <p>Track your performance across all tests</p>
       </div>

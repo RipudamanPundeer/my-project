@@ -1,5 +1,7 @@
+/* Reset and base styles */
 :root {
-  --primary-color: #1a252f;  /* Darker shade */
+  --navbar-height: 64px;
+  --primary-color: #1a252f;
   --secondary-color: #3498db;
   --accent-color: #e74c3c;
   --background-color: #f8f9fa;
@@ -8,18 +10,22 @@
 }
 
 body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
   background-color: var(--background-color);
   color: var(--text-color);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
+  width: 100%;
+  padding-top: calc(var(--navbar-height) + 1rem); /* Adjusted padding to prevent clipping */
 }
 
 .page-container {
+  min-height: calc(100vh - var(--navbar-height));
+  width: 100%;
+  margin: 0 auto;
   max-width: 1200px;
-  margin: 0;
-  padding: 2rem;
-  padding-top: 76px; /* Height of the navbar plus some spacing */
+  padding: 1rem;
 }
 
 .hero-section {
@@ -197,6 +203,101 @@ body {
   font-weight: 600;
 }
 
+/* Navbar Styles */
+.navbar-main {
+  height: var(--navbar-height);
+  background: var(--primary-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  padding: 0.5rem 0;
+}
+
+.brand-logo {
+  transition: transform 0.2s ease;
+}
+
+.navbar-brand-custom:hover .brand-logo {
+  transform: scale(1.1);
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: white !important;
+}
+
+/* Dropdown styles */
+.nav-dropdown {
+  margin: 0.5rem 0;
+}
+
+.user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown-toggle:hover,
+.user-dropdown-toggle:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.dropdown-menu-dark {
+  background-color: var(--primary-color);
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+}
+
+/* Auth buttons */
+.auth-button {
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  transition: all 0.2s ease !important;
+}
+
+.auth-button:hover {
+  transform: translateY(-1px);
+}
+
 .navbar-custom {
   background: #343a40 !important;  /* Original darker shade */
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -321,6 +422,28 @@ body {
   .btn-custom-primary {
     width: 100%;
     margin-bottom: 1rem;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background-color: var(--primary-color);
+    padding: 1rem;
+    margin: 0 -1rem;
+  }
+
+  .nav-dropdown {
+    width: 100%;
+  }
+
+  .user-dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .auth-button {
+    width: 100%;
   }
 }
 

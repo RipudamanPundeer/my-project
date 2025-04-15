@@ -17,8 +17,11 @@ function TestPage() {
   const [warningCount, setWarningCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isForceSubmit, setIsForceSubmit] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
-  // Function to enter fullscreen
+  // Function to enter fullscreen and start test
   const enterFullscreen = async () => {
     try {
       const elem = document.documentElement;
@@ -31,12 +34,28 @@ function TestPage() {
       }
       setIsFullscreen(true);
       setShowStartModal(false);
+      setHasStarted(true);  // Set test as started
+      if (test) {
+        setTimeLeft(test.duration * 60); // Initialize timer only when test starts
+      }
     } catch (err) {
       console.error("Error entering fullscreen:", err);
       setModalMessage("Failed to enter fullscreen mode. Please try again.");
       setModalVariant("danger");
       setShowModal(true);
     }
+  };
+
+  // Function to exit fullscreen
+  const exitFullscreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+    setIsFullscreen(false);
   };
 
   // Function to check fullscreen status
@@ -63,19 +82,23 @@ function TestPage() {
 
   // Function to handle test submission
   const handleSubmit = async (force = false) => {
-    if (!force && Object.keys(answers).length !== test.questions.length) {
-      setModalMessage("Please answer all questions before submitting!");
-      setModalVariant("warning");
-      setShowModal(true);
-      return;
+    if (force) {
+      setIsForceSubmit(true);
+      submitTest();
+    } else {
+      setShowConfirmModal(true);
     }
+  };
 
+  // New function to handle actual test submission
+  const submitTest = async () => {
     try {
       const response = await axios.post(
         `http://localhost:5000/api/tests/${id}/submit`, 
         { answers }, 
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }}
       );
+      exitFullscreen();
       navigate(`/results/${id}`, { state: response.data });
     } catch (err) {
       console.error("Error submitting test:", err);
@@ -110,7 +133,7 @@ function TestPage() {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         setTest(response.data);
-        setTimeLeft(response.data.duration * 60); // Convert minutes to seconds
+        // Remove setTimeLeft from here since we'll set it when test starts
       } catch (err) {
         setError("Failed to load test.");
       } finally {
@@ -147,7 +170,7 @@ function TestPage() {
 
   // Effect for timer countdown
   useEffect(() => {
-    if (timeLeft === null || timeLeft <= 0) return;
+    if (!hasStarted || timeLeft === null || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -161,7 +184,7 @@ function TestPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, hasStarted]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -243,7 +266,35 @@ function TestPage() {
         </Modal.Footer>
       </Modal>
 
+      {/* Modified confirmation modal to remove validation warning */}
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Submission</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to submit your test? This action cannot be undone.</p>
+          <p>You have answered {Object.keys(answers).length} out of {test?.questions?.length} questions.</p>
+          {Object.keys(answers).length < test?.questions?.length && 
+            <Alert variant="warning">
+              Note: You have unanswered questions. Submitting now will count them as incorrect.
+            </Alert>
+          }
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            Continue Test
+          </Button>
+          <Button variant="primary" onClick={() => {
+            setShowConfirmModal(false);
+            submitTest();
+          }}>
+            Submit Test
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <div className="hero-section">
+        <h1>&nbsp;</h1>
         <h2>{test.title}</h2>
         <p>{test.description}</p>
         <div className="d-flex justify-content-center align-items-center mb-4">
