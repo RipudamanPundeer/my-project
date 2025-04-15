@@ -2,13 +2,28 @@ import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Container, Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Home() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [tests, setTests] = useState([]);
 
   useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/tests");
+        setTests(response.data);
+      } catch (error) {
+        console.error("Error fetching tests:", error);
+      }
+    };
+
+    if (user) {
+      fetchTests();
+    }
+
     setTimeout(() => {
       setLoading(false);
       if (!user) {
@@ -16,6 +31,26 @@ function Home() {
       }
     }, 500);
   }, [user, navigate]);
+
+  const handleStartPractice = () => {
+    navigate("/dashboard");
+  };
+
+  const getTestByTitle = (searchTitle) => {
+    return tests.find(test => test.title.toLowerCase().includes(searchTitle.toLowerCase()));
+  };
+
+  const navigateToTest = (testType) => {
+    const test = testType === 'javascript' ? getTestByTitle('JavaScript') :
+                testType === 'react' ? getTestByTitle('ReactJS') :
+                testType === 'node' ? getTestByTitle('Node.js') : null;
+    
+    if (test) {
+      navigate(`/test/${test._id}`);
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   if (loading) {
     return (
@@ -48,7 +83,7 @@ function Home() {
               <Button 
                 variant="light" 
                 size="lg" 
-                onClick={() => navigate("/dashboard")}
+                onClick={handleStartPractice}
                 className="me-3"
               >
                 Start Learning
@@ -101,7 +136,7 @@ function Home() {
                 <Button 
                   variant="primary" 
                   className="w-100 mb-3 py-2"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={handleStartPractice}
                 >
                   <i className="fas fa-edit me-2"></i>
                   Start New Test
@@ -124,6 +159,7 @@ function Home() {
                 <Button 
                   variant="outline-secondary" 
                   className="w-100 mb-3 py-2"
+                  onClick={() => navigate("/profile")}
                 >
                   <i className="fas fa-user-cog me-2"></i>
                   Edit Profile
@@ -160,7 +196,7 @@ function Home() {
                 <Button 
                   variant="primary" 
                   className="w-100"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigateToTest('javascript')}
                 >
                   Start Practice
                 </Button>
@@ -184,7 +220,7 @@ function Home() {
                 <Button 
                   variant="primary" 
                   className="w-100"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigateToTest('react')}
                 >
                   Start Practice
                 </Button>
@@ -208,7 +244,7 @@ function Home() {
                 <Button 
                   variant="primary" 
                   className="w-100"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigateToTest('node')}
                 >
                   Start Practice
                 </Button>
