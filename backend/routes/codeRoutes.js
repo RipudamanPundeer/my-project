@@ -10,15 +10,15 @@ const LANGUAGE_IDS = {
 };
 
 router.post('/execute', async (req, res) => {
-  const { code, language } = req.body;
+  const { code, language, input } = req.body;
   const languageId = LANGUAGE_IDS[language] || LANGUAGE_IDS.javascript;
-  
+
   try {
     // Submit code to Judge0 API
     const submitResponse = await axios.post('https://judge0-ce.p.rapidapi.com/submissions', {
       source_code: code,
       language_id: languageId,
-      stdin: ''
+      stdin: input || '' // Pass user input to Judge0
     }, {
       headers: {
         'content-type': 'application/json',
