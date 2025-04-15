@@ -16,15 +16,25 @@ function Dashboard() {
       'JavaScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
       'ReactJS': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
       'MongoDB': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
-      'Node.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg'
+      'Node.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+      'Express': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg'
     };
     
     for (const [key, value] of Object.entries(icons)) {
-      if (title.includes(key)) {
+      if (title.toLowerCase().includes(key.toLowerCase())) {
         return value;
       }
     }
-    return 'https://via.placeholder.com/50?text=Test';
+
+    // For system subjects and others, use UI Avatars
+    const initials = title
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2); // Take only first two initials
+
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=random&color=fff&size=60&bold=true&font-size=0.33`;
   };
 
   useEffect(() => {
