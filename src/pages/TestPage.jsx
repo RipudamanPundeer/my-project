@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Container, Card, Button, Spinner, Alert, Form, Modal, ProgressBar } from "react-bootstrap";
 import axios from "axios";
 
@@ -204,13 +204,43 @@ function TestPage() {
     return (Object.keys(answers).length / test.questions.length) * 100;
   };
 
-  if (loading) return (
-    <div className="spinner-container">
-      <Spinner animation="border" variant="primary" />
-    </div>
-  );
-  
-  if (error) return <Alert variant="danger">{error}</Alert>;
+  if (loading) {
+    return (
+      <div className="spinner-container">
+        <Spinner animation="border" variant="primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">
+          {error}
+          <div className="mt-3">
+            <Button variant="primary" onClick={() => navigate("/dashboard")}>
+              Return to Dashboard
+            </Button>
+          </div>
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!test) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="warning">
+          Test not found.
+          <div className="mt-3">
+            <Button variant="primary" onClick={() => navigate("/dashboard")}>
+              Return to Dashboard
+            </Button>
+          </div>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <div className="page-container">
@@ -222,7 +252,7 @@ function TestPage() {
         centered
       >
         <Modal.Header className="bg-primary text-white">
-          <Modal.Title>Start Test</Modal.Title>
+          <Modal.Title>{test.title} - Start Test</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>Before starting the test, please note:</p>
@@ -233,6 +263,8 @@ function TestPage() {
             <li>The test is timed and will auto-submit when time runs out</li>
             <li>Switching tabs or windows is not allowed</li>
           </ul>
+          <p className="mb-0">Duration: {test.duration} minutes</p>
+          <p>Questions: {test.questions.length}</p>
           <p>Click "Start Test" when you're ready to begin in fullscreen mode.</p>
         </Modal.Body>
         <Modal.Footer>

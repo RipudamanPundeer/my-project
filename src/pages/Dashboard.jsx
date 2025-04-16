@@ -26,13 +26,12 @@ function Dashboard() {
       }
     }
 
-    // For system subjects and others, use UI Avatars
     const initials = title
       .split(' ')
       .map(word => word[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2); // Take only first two initials
+      .slice(0, 2);
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=random&color=fff&size=60&bold=true&font-size=0.33`;
   };
@@ -53,6 +52,10 @@ function Dashboard() {
 
     fetchTests();
   }, []);
+
+  const handleStartTest = (testId) => {
+    navigate(`/test/${testId}`); // Remove the state parameter as it's not needed for regular tests
+  };
 
   return (
     <div className="page-container">
@@ -90,7 +93,7 @@ function Dashboard() {
                     <Button 
                       variant="primary" 
                       className="btn-custom-primary"
-                      onClick={() => navigate(`/test/${test._id}`)}
+                      onClick={() => handleStartTest(test._id)}
                     >
                       Start Test
                     </Button>

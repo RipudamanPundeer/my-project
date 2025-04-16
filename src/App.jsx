@@ -54,7 +54,9 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute requiredRole="candidate"><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<ProtectedRoute requiredRole="candidate"><Jobs /></ProtectedRoute>} />
           <Route path="/my-applications" element={<ProtectedRoute requiredRole="candidate"><MyApplications /></ProtectedRoute>} />
+          <Route path="/test/:id" element={<ProtectedRoute requiredRole="candidate"><TestPage /></ProtectedRoute>} />
           <Route path="/results" element={<ProtectedRoute requiredRole="candidate"><AllResultsPage /></ProtectedRoute>} />
+          <Route path="/results/:id" element={<ProtectedRoute requiredRole="candidate"><ResultsPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/code-test" element={<ProtectedRoute requiredRole="candidate"><CodeTest /></ProtectedRoute>} />
           <Route path="/coding-problems" element={<ProtectedRoute requiredRole="candidate"><CodingProblems /></ProtectedRoute>} />
