@@ -257,8 +257,9 @@ function MyApplications() {
                   <Button 
                     variant="outline-primary"
                     size="sm"
-                    href={`http://localhost:5000/api/jobs/applications/${selectedApplication._id}/resume`}
+                    href={`http://localhost:5000/api/jobs/applications/${selectedApplication._id}/resume?token=${localStorage.getItem('token')}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                   >
                     View Resume
                   </Button>

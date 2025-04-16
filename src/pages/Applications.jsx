@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Badge, Button, Card, Dropdown, Form, Row, Col } from 'react-bootstrap';
+import { Container, Table, Badge, Button, Card, Dropdown, Form, Row, Col, Modal } from 'react-bootstrap';
 import axios from 'axios';
 
 function Applications() {
@@ -7,6 +7,8 @@ function Applications() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   useEffect(() => {
     fetchApplications();
@@ -27,17 +29,31 @@ function Applications() {
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:5000/api/company/applications/${applicationId}/status`, 
+      const application = applications.find(app => app._id === applicationId);
+      await axios.patch(
+        `http://localhost:5000/api/jobs/${application.jobId._id}/applications/${applicationId}/status`, 
         { status: newStatus },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      
       setApplications(applications.map(app => 
         app._id === applicationId ? { ...app, status: newStatus } : app
       ));
     } catch (error) {
       console.error('Error updating application status:', error);
     }
+  };
+
+  const handleViewProfile = (candidate) => {
+    setSelectedCandidate(candidate);
+    setShowProfileModal(true);
+  };
+
+  const handleViewResume = (applicationId) => {
+    const token = localStorage.getItem('token');
+    window.open(
+      `http://localhost:5000/api/jobs/applications/${applicationId}/resume?token=${token}`,
+      '_blank'
+    );
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -61,8 +77,8 @@ function Applications() {
     .filter(app => filterStatus === 'all' || app.status.toLowerCase() === filterStatus)
     .filter(app => 
       searchTerm === '' || 
-      app.candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.job.title.toLowerCase().includes(searchTerm.toLowerCase())
+      app.candidateId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.jobId.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
   if (loading) {
@@ -120,23 +136,27 @@ function Applications() {
                     <td>
                       <div className="d-flex align-items-center">
                         <img
-                          src={application.candidate.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(application.candidate.name)}&background=random`}
+                          src={application.candidateId.profile?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(application.candidateId.name)}&background=random`}
                           alt=""
                           style={{ 
                             width: '40px', 
                             height: '40px', 
                             borderRadius: '50%',
-                            marginRight: '10px'
+                            marginRight: '10px',
+                            cursor: 'pointer'
                           }}
+                          onClick={() => handleViewProfile(application.candidateId)}
                         />
                         <div>
-                          <div>{application.candidate.name}</div>
-                          <small className="text-muted">{application.candidate.email}</small>
+                          <div className="fw-bold" style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(application.candidateId)}>
+                            {application.candidateId.name}
+                          </div>
+                          <small className="text-muted">{application.candidateId.email}</small>
                         </div>
                       </div>
                     </td>
-                    <td>{application.job.title}</td>
-                    <td>{new Date(application.appliedDate).toLocaleDateString()}</td>
+                    <td>{application.jobId.title}</td>
+                    <td>{new Date(application.createdAt).toLocaleDateString()}</td>
                     <td>
                       <Badge bg={getStatusBadgeVariant(application.status)}>
                         {application.status}
@@ -148,11 +168,14 @@ function Applications() {
                           Actions
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
-                          <Dropdown.Item 
-                            href={`/company/applications/${application._id}`}
-                          >
-                            View Details
+                          <Dropdown.Item onClick={() => handleViewProfile(application.candidateId)}>
+                            View Profile
                           </Dropdown.Item>
+                          {application.resume && (
+                            <Dropdown.Item onClick={() => handleViewResume(application._id)}>
+                              View Resume
+                            </Dropdown.Item>
+                          )}
                           <Dropdown.Divider />
                           <Dropdown.Header>Update Status</Dropdown.Header>
                           <Dropdown.Item 
@@ -190,6 +213,107 @@ function Applications() {
           )}
         </Card.Body>
       </Card>
+
+      {/* Candidate Profile Modal */}
+      <Modal show={showProfileModal} onHide={() => setShowProfileModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Candidate Profile</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedCandidate && (
+            <Row>
+              <Col md={4} className="text-center mb-4">
+                <img
+                  src={selectedCandidate.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidate.name)}&background=random`}
+                  alt={selectedCandidate.name}
+                  style={{ 
+                    width: '150px', 
+                    height: '150px', 
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    marginBottom: '1rem'
+                  }}
+                />
+                <h4>{selectedCandidate.name}</h4>
+                <p className="text-muted mb-3">{selectedCandidate.email}</p>
+              </Col>
+              <Col md={8}>
+                {selectedCandidate.profile?.bio && (
+                  <div className="mb-4">
+                    <h6 className="text-muted mb-2">About</h6>
+                    <p>{selectedCandidate.profile.bio}</p>
+                  </div>
+                )}
+
+                {selectedCandidate.profile?.skills?.length > 0 && (
+                  <div className="mb-4">
+                    <h6 className="text-muted mb-2">Skills</h6>
+                    <div>
+                      {selectedCandidate.profile.skills.map((skill, index) => (
+                        <Badge key={index} bg="primary" className="me-2 mb-2">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Row className="mb-4">
+                  {selectedCandidate.profile?.college && (
+                    <Col md={6} className="mb-3">
+                      <h6 className="text-muted mb-1">Education</h6>
+                      <p className="mb-1">{selectedCandidate.profile.college}</p>
+                      {selectedCandidate.profile?.degree && (
+                        <p className="mb-1">{selectedCandidate.profile.degree}</p>
+                      )}
+                      {selectedCandidate.profile?.graduationYear && (
+                        <p className="mb-0">Class of {selectedCandidate.profile.graduationYear}</p>
+                      )}
+                    </Col>
+                  )}
+                  
+                  {selectedCandidate.profile?.phoneNumber && (
+                    <Col md={6} className="mb-3">
+                      <h6 className="text-muted mb-1">Contact</h6>
+                      <p className="mb-0">{selectedCandidate.profile.phoneNumber}</p>
+                    </Col>
+                  )}
+                </Row>
+
+                {(selectedCandidate.profile?.linkedIn || selectedCandidate.profile?.github) && (
+                  <div>
+                    <h6 className="text-muted mb-2">Social Links</h6>
+                    {selectedCandidate.profile?.linkedIn && (
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        href={selectedCandidate.profile.linkedIn}
+                        target="_blank"
+                        className="me-2 mb-2"
+                      >
+                        <i className="fab fa-linkedin me-2"></i>
+                        LinkedIn Profile
+                      </Button>
+                    )}
+                    {selectedCandidate.profile?.github && (
+                      <Button
+                        variant="outline-dark"
+                        size="sm"
+                        href={selectedCandidate.profile.github}
+                        target="_blank"
+                        className="mb-2"
+                      >
+                        <i className="fab fa-github me-2"></i>
+                        GitHub Profile
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </Col>
+            </Row>
+          )}
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 }

@@ -5,8 +5,10 @@ const JobApplication = require('../models/JobApplication');
 const Company = require('../models/Company');
 const Test = require('../models/Test');
 const CodingProblem = require('../models/CodingProblem');
+const User = require('../models/User'); // Added User model
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
+const jwt = require('jsonwebtoken'); // Added jwt
 
 // Configure multer for resume uploads
 const storage = multer.memoryStorage();
@@ -139,6 +141,7 @@ router.post('/:id/apply', authMiddleware, upload.single('resume'), async (req, r
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
+    // Create application with resume from upload
     const application = new JobApplication({
       jobId: job._id,
       candidateId: req.user._id,
@@ -182,14 +185,14 @@ router.get('/:id/applications', authMiddleware, async (req, res) => {
 router.patch('/:jobId/applications/:applicationId/status', authMiddleware, async (req, res) => {
   try {
     const company = await Company.findOne({ userId: req.user._id });
-    const job = await Job.findOne({ _id: req.params.jobId, companyId: company._id });
+    const job = await Job.findById(req.params.jobId);
 
-    if (!job) {
+    if (!job || job.companyId.toString() !== company._id.toString()) {
       return res.status(404).json({ message: 'Job not found or unauthorized' });
     }
 
     const application = await JobApplication.findOneAndUpdate(
-      { _id: req.params.applicationId, jobId: job._id },
+      { _id: req.params.applicationId, jobId: req.params.jobId },
       { status: req.body.status },
       { new: true }
     );
@@ -219,8 +222,18 @@ router.get('/applications/me', authMiddleware, async (req, res) => {
 });
 
 // Download application resume
-router.get('/applications/:id/resume', authMiddleware, async (req, res) => {
+router.get('/applications/:id/resume', async (req, res) => {
   try {
+    // Get token from query parameter
+    const token = req.query.token;
+    if (!token) {
+      return res.status(401).json({ message: 'Access Denied. No token provided.' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { _id: decoded.id };
+
     const application = await JobApplication.findById(req.params.id);
     if (!application || !application.resume || !application.resume.data) {
       return res.status(404).json({ message: 'Resume not found' });
@@ -239,6 +252,9 @@ router.get('/applications/:id/resume', authMiddleware, async (req, res) => {
     res.set('Content-Disposition', `inline; filename="${application.resume.filename}"`);
     res.send(application.resume.data);
   } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token.' });
+    }
     res.status(500).json({ message: 'Server Error' });
   }
 });

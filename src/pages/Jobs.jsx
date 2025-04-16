@@ -13,10 +13,10 @@ function Jobs() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
-  const [resume, setResume] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [applying, setApplying] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [resume, setResume] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -43,21 +43,12 @@ function Jobs() {
     setShowApplyModal(true);
   };
 
-  const handleResumeChange = (e) => {
-    setResume(e.target.files[0]);
-  };
-
   const handleSubmitApplication = async (e) => {
     e.preventDefault();
-    if (!resume) {
-      setMessage({ text: 'Please upload your resume', type: 'danger' });
-      return;
-    }
-
     setApplying(true);
     const formData = new FormData();
-    formData.append('resume', resume);
     if (coverLetter) formData.append('coverLetter', coverLetter);
+    if (resume) formData.append('resume', resume);
 
     try {
       await axios.post(
@@ -367,6 +358,19 @@ function Jobs() {
         <Modal.Body>
           <Form onSubmit={handleSubmitApplication}>
             <Form.Group className="mb-3">
+              <Form.Label>Resume</Form.Label>
+              <Form.Control
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => setResume(e.target.files[0])}
+                required
+              />
+              <Form.Text className="text-muted">
+                Upload your resume (PDF, DOC, or DOCX format)
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
               <Form.Label>Cover Letter (Optional)</Form.Label>
               <Form.Control
                 as="textarea"
@@ -375,19 +379,6 @@ function Jobs() {
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="Tell us why you're a great fit for this position..."
               />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Resume (Required)</Form.Label>
-              <Form.Control
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleResumeChange}
-                required
-              />
-              <Form.Text className="text-muted">
-                Upload your resume in PDF, DOC, or DOCX format
-              </Form.Text>
             </Form.Group>
 
             <div className="d-flex justify-content-end gap-2">

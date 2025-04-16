@@ -169,10 +169,13 @@ router.get('/applications', authMiddleware, async (req, res) => {
 
     // Then get all applications for these jobs
     const applications = await JobApplication.find({ jobId: { $in: jobIds } })
-      .populate('candidateId', 'name email profile')
+      .populate({
+        path: 'candidateId',
+        select: 'name email profile'
+      })
       .populate({
         path: 'jobId',
-        select: 'title department location employmentType'
+        select: 'title department location employmentType companyId'
       })
       .sort({ createdAt: -1 });
 
