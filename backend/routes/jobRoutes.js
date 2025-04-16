@@ -3,6 +3,8 @@ const router = express.Router();
 const Job = require('../models/Job');
 const JobApplication = require('../models/JobApplication');
 const Company = require('../models/Company');
+const Test = require('../models/Test');
+const CodingProblem = require('../models/CodingProblem');
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
 
@@ -236,6 +238,111 @@ router.get('/applications/:id/resume', authMiddleware, async (req, res) => {
     res.set('Content-Type', application.resume.contentType);
     res.set('Content-Disposition', `inline; filename="${application.resume.filename}"`);
     res.send(application.resume.data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Assign tests to an application
+router.post('/:jobId/applications/:applicationId/assign-tests', authMiddleware, async (req, res) => {
+  try {
+    const company = await Company.findOne({ userId: req.user._id });
+    const job = await Job.findOne({ _id: req.params.jobId, companyId: company._id });
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
+    }
+
+    const { tests, codingProblems, dueDate } = req.body;
+
+    const application = await JobApplication.findById(req.params.applicationId);
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Initialize testAssignment if it doesn't exist
+    if (!application.testAssignment) {
+      application.testAssignment = { assignedTests: [], codingProblems: [] };
+    }
+
+    // Add tests
+    if (tests && tests.length > 0) {
+      const testAssignments = tests.map(testId => ({
+        testId,
+        assignedAt: new Date(),
+        dueDate: dueDate
+      }));
+      application.testAssignment.assignedTests.push(...testAssignments);
+    }
+
+    // Add coding problems
+    if (codingProblems && codingProblems.length > 0) {
+      const problemAssignments = codingProblems.map(problemId => ({
+        problemId,
+        assignedAt: new Date(),
+        dueDate: dueDate
+      }));
+      application.testAssignment.codingProblems.push(...problemAssignments);
+    }
+
+    await application.save();
+    res.json(application);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update placement status
+router.patch('/:jobId/applications/:applicationId/placement', authMiddleware, async (req, res) => {
+  try {
+    const company = await Company.findOne({ userId: req.user._id });
+    const job = await Job.findOne({ _id: req.params.jobId, companyId: company._id });
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
+    }
+
+    const { placementStatus, placementDetails } = req.body;
+    const application = await JobApplication.findById(req.params.applicationId);
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    application.placementStatus = placementStatus;
+    if (placementDetails) {
+      application.placementDetails = {
+        ...application.placementDetails,
+        ...placementDetails
+      };
+    }
+
+    await application.save();
+    res.json(application);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Get assigned tests for an application
+router.get('/:jobId/applications/:applicationId/tests', authMiddleware, async (req, res) => {
+  try {
+    const application = await JobApplication.findById(req.params.applicationId)
+      .populate('testAssignment.assignedTests.testId')
+      .populate('testAssignment.codingProblems.problemId');
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Check authorization - only company or the candidate can view
+    const company = await Company.findOne({ userId: req.user._id });
+    if (application.candidateId.toString() !== req.user._id.toString() && 
+        !company) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    res.json(application.testAssignment);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }

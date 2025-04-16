@@ -53,7 +53,6 @@ function CompanyJobs() {
   const getStatusBadgeVariant = (status) => {
     switch (status) {
       case 'active': return 'success';
-      case 'draft': return 'secondary';
       case 'closed': return 'danger';
       default: return 'primary';
     }
@@ -103,9 +102,11 @@ function CompanyJobs() {
               <Card className="h-100 shadow-sm">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-start mb-3">
-                    <Badge bg={getStatusBadgeVariant(job.status)}>
-                      {job.status}
-                    </Badge>
+                    {job.status === 'closed' && (
+                      <Badge bg={getStatusBadgeVariant(job.status)}>
+                        {job.status}
+                      </Badge>
+                    )}
                     <div className="dropdown">
                       <Button 
                         variant="link" 

@@ -74,6 +74,14 @@ function AppNavbar() {
                   <>
                     <Nav.Link 
                       as={Link} 
+                      to="/jobs" 
+                      className={getNavLinkClass('/jobs')}
+                      onClick={closeNav}
+                    >
+                      Jobs
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
                       to="/dashboard" 
                       className={getNavLinkClass('/dashboard')}
                       onClick={closeNav}
@@ -103,6 +111,14 @@ function AppNavbar() {
                       onClick={closeNav}
                     >
                       Code Editor
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/my-applications" 
+                      className={getNavLinkClass('/my-applications')}
+                      onClick={closeNav}
+                    >
+                      My Applications
                     </Nav.Link>
                   </>
                 ) : (

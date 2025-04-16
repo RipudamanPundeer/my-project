@@ -15,6 +15,37 @@ const jobApplicationSchema = new mongoose.Schema({
     default: 'pending'
   },
   notes: { type: String },
+  testAssignment: {
+    assignedTests: [{
+      testId: { type: mongoose.Schema.Types.ObjectId, ref: 'Test' },
+      assignedAt: { type: Date, default: Date.now },
+      completed: { type: Boolean, default: false },
+      score: { type: Number },
+      dueDate: { type: Date }
+    }],
+    codingProblems: [{
+      problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'CodingProblem' },
+      assignedAt: { type: Date, default: Date.now },
+      completed: { type: Boolean, default: false },
+      score: { type: Number },
+      dueDate: { type: Date }
+    }]
+  },
+  placementStatus: {
+    type: String,
+    enum: ['pending', 'in_progress', 'placed', 'not_placed'],
+    default: 'pending'
+  },
+  placementDetails: {
+    startDate: { type: Date },
+    offerAccepted: { type: Boolean },
+    offerDetails: { type: String },
+    compensationPackage: {
+      salary: { type: Number },
+      currency: { type: String },
+      period: { type: String }
+    }
+  }
 }, { 
   timestamps: true,
   toJSON: { virtuals: true },

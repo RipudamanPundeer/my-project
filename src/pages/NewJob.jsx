@@ -23,7 +23,7 @@ function NewJob() {
       currency: 'USD',
       period: 'yearly'
     },
-    status: 'draft'
+    status: 'active'
   });
 
   useEffect(() => {
@@ -91,16 +91,6 @@ function NewJob() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSaveAsDraft = () => {
-    setJob(prev => ({ ...prev, status: 'draft' }));
-    handleSubmit();
-  };
-
-  const handlePublish = () => {
-    setJob(prev => ({ ...prev, status: 'active' }));
-    handleSubmit();
   };
 
   // Validate form
@@ -313,15 +303,15 @@ function NewJob() {
 
             <div className="d-flex justify-content-end gap-2">
               <Button 
-                variant="secondary"
-                onClick={handleSaveAsDraft}
-                disabled={loading || !isFormValid()}
+                variant="outline-secondary"
+                onClick={() => navigate('/company/jobs')}
+                disabled={loading}
               >
-                {loading ? 'Saving...' : 'Save as Draft'}
+                Cancel
               </Button>
               <Button 
                 variant="primary"
-                onClick={handlePublish}
+                onClick={handleSubmit}
                 disabled={loading || !isFormValid()}
               >
                 {loading ? 'Publishing...' : (id ? 'Update Job' : 'Publish Job')}
