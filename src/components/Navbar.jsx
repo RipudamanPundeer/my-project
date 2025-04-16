@@ -4,11 +4,11 @@ import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 function AppNavbar() {
-  const { user, logout, profileUpdateKey } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [currentPhotoSrc, setCurrentPhotoSrc] = useState(null); // Local state for image src
+  const [currentPhotoSrc, setCurrentPhotoSrc] = useState(null);
 
   const getNavLinkClass = (path) => {
     return `nav-link ${location.pathname === path ? 'active' : ''}`;
@@ -16,23 +16,19 @@ function AppNavbar() {
 
   const closeNav = () => setExpanded(false);
 
-  // Effect to update the local image source when profile key changes
   useEffect(() => {
-    setImageError(false); // Reset error on update
-    if (user?.profile?.photo?.data && user?.id) {
-      // Construct the URL with the update key as timestamp
-      const newSrc = `http://localhost:5000/api/profile/photo/${user.id}?t=${profileUpdateKey}`;
-      setCurrentPhotoSrc(newSrc);
+    setImageError(false);
+    if (user?.companyDetails?.logo?.data) {
+      setCurrentPhotoSrc(`http://localhost:5000/api/company/logo/${user.companyDetails._id}`);
     } else {
-      setCurrentPhotoSrc(null); // Clear src if no photo data
+      setCurrentPhotoSrc(null);
     }
-  }, [profileUpdateKey, user?.id, user?.profile?.photo?.data]); // Depend on key and user photo data
+  }, [user?.companyDetails?.logo, user?.companyDetails?._id]);
 
   const getProfileImage = () => {
     if (currentPhotoSrc && !imageError) {
       return currentPhotoSrc;
     }
-    // Fallback to UI Avatars
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;
   };
 
@@ -72,38 +68,73 @@ function AppNavbar() {
                 >
                   Home
                 </Nav.Link>
-                <Nav.Link 
-                  as={Link} 
-                  to="/dashboard" 
-                  className={getNavLinkClass('/dashboard')}
-                  onClick={closeNav}
-                >
-                  Tests
-                </Nav.Link>
-                <Nav.Link 
-                  as={Link} 
-                  to="/coding-problems" 
-                  className={getNavLinkClass('/coding-problems')}
-                  onClick={closeNav}
-                >
-                  Coding Problems
-                </Nav.Link>
-                <Nav.Link 
-                  as={Link} 
-                  to="/results" 
-                  className={getNavLinkClass('/results')}
-                  onClick={closeNav}
-                >
-                  Results
-                </Nav.Link>
-                <Nav.Link 
-                  as={Link} 
-                  to="/code-test" 
-                  className={getNavLinkClass('/code-test')}
-                  onClick={closeNav}
-                >
-                  Code Editor
-                </Nav.Link>
+
+                {user.role === 'candidate' ? (
+                  // Candidate Navigation Links
+                  <>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/dashboard" 
+                      className={getNavLinkClass('/dashboard')}
+                      onClick={closeNav}
+                    >
+                      Tests
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/coding-problems" 
+                      className={getNavLinkClass('/coding-problems')}
+                      onClick={closeNav}
+                    >
+                      Coding Problems
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/results" 
+                      className={getNavLinkClass('/results')}
+                      onClick={closeNav}
+                    >
+                      Results
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/code-test" 
+                      className={getNavLinkClass('/code-test')}
+                      onClick={closeNav}
+                    >
+                      Code Editor
+                    </Nav.Link>
+                  </>
+                ) : (
+                  // Company Navigation Links
+                  <>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/company/dashboard" 
+                      className={getNavLinkClass('/company/dashboard')}
+                      onClick={closeNav}
+                    >
+                      Dashboard
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/company/jobs" 
+                      className={getNavLinkClass('/company/jobs')}
+                      onClick={closeNav}
+                    >
+                      Jobs
+                    </Nav.Link>
+                    <Nav.Link 
+                      as={Link} 
+                      to="/company/applications" 
+                      className={getNavLinkClass('/company/applications')}
+                      onClick={closeNav}
+                    >
+                      Applications
+                    </Nav.Link>
+                  </>
+                )}
+
                 <Dropdown className="nav-dropdown ms-lg-2">
                   <Dropdown.Toggle 
                     variant="outline-light" 
@@ -111,9 +142,8 @@ function AppNavbar() {
                     className="user-dropdown-toggle"
                   >
                     <img
-                      // Key still useful for React reconciliation, based on whether we have a src
                       key={currentPhotoSrc || 'avatar-fallback'}
-                      src={getProfileImage()} // Use the local state for src
+                      src={getProfileImage()}
                       width="32"
                       height="32"
                       className="rounded-circle me-2"
@@ -121,15 +151,19 @@ function AppNavbar() {
                       style={{ objectFit: 'cover' }}
                       onError={() => {
                         setImageError(true);
-                        setCurrentPhotoSrc(null); // Clear src on error to prevent retry loops
+                        setCurrentPhotoSrc(null);
                       }}
-                      loading="eager" // Keep eager loading for navbar image
+                      loading="eager"
                     />
                     <span className="d-none d-lg-inline">{user.name}</span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu align="end" className="dropdown-menu-dark">
-                    <Dropdown.Item as={Link} to="/profile" onClick={closeNav}>
+                    <Dropdown.Item 
+                      as={Link} 
+                      to={user.role === 'company' ? "/company/profile" : "/profile"} 
+                      onClick={closeNav}
+                    >
                       <i className="fas fa-user me-2"></i>
                       Profile
                     </Dropdown.Item>

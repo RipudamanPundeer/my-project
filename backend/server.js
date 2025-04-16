@@ -8,8 +8,10 @@ const authRoutes = require('./routes/authRoutes');
 const testRoutes = require('./routes/testRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const profileRoutes = require('./routes/profileRoutes');
-const codeRoutes = require('./routes/codeRoutes');  
-const codingProblemRoutes = require('./routes/codingProblemRoutes');  // Add this line
+const codeRoutes = require('./routes/codeRoutes');
+const codingProblemRoutes = require('./routes/codingProblemRoutes');
+const companyRoutes = require('./routes/companyRoutes');
+const jobRoutes = require('./routes/jobRoutes');
 
 dotenv.config();
 const app = express();
@@ -27,8 +29,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api', codeRoutes);  
-app.use('/api/coding-problems', codingProblemRoutes);  // Add this line
+app.use('/api', codeRoutes);
+app.use('/api/coding-problems', codingProblemRoutes);
+app.use('/api/company', companyRoutes);
+app.use('/api/jobs', jobRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");
