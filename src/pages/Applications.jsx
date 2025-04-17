@@ -136,14 +136,17 @@ function Applications() {
                     <td>
                       <div className="d-flex align-items-center">
                         <img
-                          src={application.candidateId.profile?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(application.candidateId.name)}&background=random`}
+                          src={application.candidateId.profile?.photo ? 
+                            `http://localhost:5000/api/profile/photo/${application.candidateId._id}` : 
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(application.candidateId.name)}&background=random`}
                           alt=""
                           style={{ 
                             width: '40px', 
                             height: '40px', 
                             borderRadius: '50%',
                             marginRight: '10px',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            objectFit: 'cover'
                           }}
                           onClick={() => handleViewProfile(application.candidateId)}
                         />
@@ -224,7 +227,9 @@ function Applications() {
             <Row>
               <Col md={4} className="text-center mb-4">
                 <img
-                  src={selectedCandidate.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidate.name)}&background=random`}
+                  src={selectedCandidate.profile?.photo ? 
+                    `http://localhost:5000/api/profile/photo/${selectedCandidate._id}` : 
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidate.name)}&background=random`}
                   alt={selectedCandidate.name}
                   style={{ 
                     width: '150px', 
