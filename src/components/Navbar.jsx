@@ -9,6 +9,7 @@ function AppNavbar() {
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [currentPhotoSrc, setCurrentPhotoSrc] = useState(null);
+  const [timestamp, setTimestamp] = useState(Date.now());
 
   const getNavLinkClass = (path) => {
     return `nav-link ${location.pathname === path ? 'active' : ''}`;
@@ -18,12 +19,15 @@ function AppNavbar() {
 
   useEffect(() => {
     setImageError(false);
-    if (user?.companyDetails?.logo?.data) {
-      setCurrentPhotoSrc(`http://localhost:5000/api/company/logo/${user.companyDetails._id}`);
+    setTimestamp(Date.now()); // Update timestamp when user changes
+    if (user?.role === 'company' && user?.companyDetails?.logo) {
+      setCurrentPhotoSrc(`http://localhost:5000/api/company/logo/${user.companyDetails._id}?t=${timestamp}`);
+    } else if (user?.role === 'candidate' && user?.profile?.photo) {
+      setCurrentPhotoSrc(`http://localhost:5000/api/profile/photo/${user._id}?t=${timestamp}`);
     } else {
       setCurrentPhotoSrc(null);
     }
-  }, [user?.companyDetails?.logo, user?.companyDetails?._id]);
+  }, [user, timestamp]);
 
   const getProfileImage = () => {
     if (currentPhotoSrc && !imageError) {
@@ -158,7 +162,6 @@ function AppNavbar() {
                     className="user-dropdown-toggle"
                   >
                     <img
-                      key={currentPhotoSrc || 'avatar-fallback'}
                       src={getProfileImage()}
                       width="32"
                       height="32"

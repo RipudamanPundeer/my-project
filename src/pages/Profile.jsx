@@ -110,14 +110,24 @@ function Profile() {
     formData.append('photo', photo);
     setMessage({ text: '', type: '' });
     try {
-      await axios.post('http://localhost:5000/api/profile/photo', formData, {
+      const response = await axios.post('http://localhost:5000/api/profile/photo', formData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data'
         }
       });
+      
       setMessage({ text: 'Photo updated successfully! Refreshing...', type: 'success' });
-      window.location.reload(); // Force a page reload
+      // Update the user context with the new profile data
+      const updatedUser = { ...user };
+      // Update the profile photo in the user context
+      if (response.data.profile) {
+        updatedUser.profile = response.data.profile;
+      }
+      updateUserProfile(updatedUser);
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to update photo', type: 'danger' });
     }
@@ -129,14 +139,22 @@ function Profile() {
     formData.append('resume', resume);
     setMessage({ text: '', type: '' });
     try {
-      await axios.post('http://localhost:5000/api/profile/resume', formData, {
+      const response = await axios.post('http://localhost:5000/api/profile/resume', formData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data'
         }
       });
       setMessage({ text: 'Resume updated successfully! Refreshing...', type: 'success' });
-      window.location.reload(); // Force a page reload
+      // Update the user context with the new profile data
+      const updatedUser = { ...user };
+      if (response.data.profile) {
+        updatedUser.profile = response.data.profile;
+      }
+      updateUserProfile(updatedUser);
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to update resume', type: 'danger' });
     }
@@ -145,11 +163,21 @@ function Profile() {
   const handleRemovePhoto = async () => {
     setMessage({ text: '', type: '' });
     try {
-      await axios.delete('http://localhost:5000/api/profile/photo', {
+      const response = await axios.delete('http://localhost:5000/api/profile/photo', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMessage({ text: 'Photo removed successfully! Refreshing...', type: 'success' });
-      window.location.reload(); // Force a page reload
+      setPhotoPreview(null);
+      setPhoto(null);
+      // Update the user context with the updated profile data
+      const updatedUser = { ...user };
+      if (response.data.profile) {
+        updatedUser.profile = response.data.profile;
+      }
+      updateUserProfile(updatedUser);
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to remove photo', type: 'danger' });
     }
@@ -158,11 +186,21 @@ function Profile() {
   const handleRemoveResume = async () => {
     setMessage({ text: '', type: '' });
     try {
-      await axios.delete('http://localhost:5000/api/profile/resume', {
+      const response = await axios.delete('http://localhost:5000/api/profile/resume', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMessage({ text: 'Resume removed successfully! Refreshing...', type: 'success' });
-      window.location.reload(); // Force a page reload
+      setResume(null);
+      setResumeName('');
+      // Update the user context with the updated profile data
+      const updatedUser = { ...user };
+      if (response.data.profile) {
+        updatedUser.profile = response.data.profile;
+      }
+      updateUserProfile(updatedUser);
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to remove resume', type: 'danger' });
     }

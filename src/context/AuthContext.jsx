@@ -6,7 +6,6 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Removed profileUpdateKey state
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -18,9 +17,16 @@ export const AuthProvider = ({ children }) => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         
         try {
-          const profileResponse = await axios.get('http://localhost:5000/api/profile');
-          const fullUser = { ...parsedUser, profile: profileResponse.data.profile };
-          setUser(fullUser);
+          // Fetch the latest profile data
+          if (parsedUser.role === 'candidate') {
+            const profileResponse = await axios.get('http://localhost:5000/api/profile');
+            const fullUser = { ...parsedUser, profile: profileResponse.data.profile };
+            setUser(fullUser);
+          } else if (parsedUser.role === 'company') {
+            const companyResponse = await axios.get('http://localhost:5000/api/company');
+            const fullUser = { ...parsedUser, companyDetails: companyResponse.data };
+            setUser(fullUser);
+          }
         } catch (error) {
           console.error('Error fetching profile on init:', error);
           setUser(parsedUser);
@@ -34,15 +40,28 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = async (updatedUser) => {
     const userToStore = { ...updatedUser, password: undefined }; 
     localStorage.setItem("user", JSON.stringify(userToStore));
-    setUser(userToStore); // Update the user state
-    // Removed setProfileUpdateKey
+    
+    // Force a fresh fetch of profile/company data after update
+    try {
+      if (userToStore.role === 'candidate') {
+        const profileResponse = await axios.get('http://localhost:5000/api/profile');
+        const fullUser = { ...userToStore, profile: profileResponse.data.profile };
+        setUser(fullUser);
+      } else if (userToStore.role === 'company') {
+        const companyResponse = await axios.get('http://localhost:5000/api/company');
+        const fullUser = { ...userToStore, companyDetails: companyResponse.data };
+        setUser(fullUser);
+      }
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      setUser(userToStore);
+    }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
-    // Removed setProfileUpdateKey(0);
     axios.defaults.headers.common["Authorization"] = "";
     window.location.href = "/login";
   };
@@ -54,7 +73,6 @@ export const AuthProvider = ({ children }) => {
       updateUserProfile, 
       logout, 
       loading
-      // Removed profileUpdateKey from value
     }}>
       {children}
     </AuthContext.Provider>

@@ -97,7 +97,9 @@ function CompanyProfile() {
         companyDetails: response.data
       };
       updateUserProfile(updatedUser);
-      window.location.reload(); // Force reload to update navbar
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to update logo', type: 'danger' });
     }
@@ -118,7 +120,9 @@ function CompanyProfile() {
         companyDetails: response.data
       };
       updateUserProfile(updatedUser);
-      window.location.reload(); // Force reload to update navbar
+      setTimeout(() => {
+        window.location.reload(); // Force a full page reload after a short delay
+      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to remove logo', type: 'danger' });
     }

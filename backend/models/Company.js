@@ -18,7 +18,7 @@ const companySchema = new mongoose.Schema({
     twitter: String
   },
   contactInfo: {
-    email: String,
+    email: { type: String, required: false },
     phone: String,
     address: String
   }

@@ -8,26 +8,39 @@ const router = express.Router();
 
 // Register User (Candidate or Company)
 router.post('/register', async (req, res) => {
-  const { name, email, password, role, companyDetails } = req.body;
-
   try {
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: 'User already exists' });
+    const { name, email, password, role, companyDetails } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !name) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    // Check if user already exists
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user
-    user = new User({ 
-      name, 
-      email, 
+    const user = new User({
+      name,
+      email,
       password: hashedPassword,
       role: role || 'candidate'
     });
     await user.save();
 
     // If registering as company, create company profile
-    if (role === 'company' && companyDetails) {
+    if (role === 'company') {
+      if (!companyDetails || !companyDetails.companyName || !companyDetails.industry || !companyDetails.location) {
+        await User.findByIdAndDelete(user._id); // Rollback user creation
+        return res.status(400).json({ message: 'Company details are required' });
+      }
+
       const company = new Company({
         userId: user._id,
         companyName: companyDetails.companyName,
@@ -37,18 +50,24 @@ router.post('/register', async (req, res) => {
         website: companyDetails.website,
         description: companyDetails.description,
         contactInfo: {
-          email: companyDetails.email || email,
+          email: email, // Use user's email as company contact email
           phone: companyDetails.phone,
           address: companyDetails.address
         }
       });
-      await company.save();
+
+      try {
+        await company.save();
+      } catch (companyError) {
+        await User.findByIdAndDelete(user._id); // Rollback user creation if company creation fails
+        throw companyError;
+      }
     }
 
     res.status(201).json({ message: 'Registration successful' });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: error.message || 'Server Error' });
   }
 });
 

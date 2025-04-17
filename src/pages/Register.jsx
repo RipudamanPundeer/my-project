@@ -33,10 +33,31 @@ function Register() {
     }));
   };
 
+  const validateForm = () => {
+    if (!name || !email || !password) {
+      setError("Please fill in all required fields");
+      return false;
+    }
+
+    if (role === 'company') {
+      if (!companyDetails.companyName || !companyDetails.industry || !companyDetails.location) {
+        setError("Company name, industry, and location are required");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const registrationData = {
@@ -44,7 +65,10 @@ function Register() {
         email,
         password,
         role,
-        companyDetails: role === 'company' ? companyDetails : undefined
+        companyDetails: role === 'company' ? {
+          ...companyDetails,
+          email // Include email in company details
+        } : undefined
       };
 
       await axios.post("http://localhost:5000/api/auth/register", registrationData);
@@ -253,7 +277,6 @@ function Register() {
                         name="phone"
                         value={companyDetails.phone}
                         onChange={handleCompanyDetailsChange}
-                        required
                         className="py-2"
                       />
                     </Form.Group>
@@ -267,7 +290,6 @@ function Register() {
                         name="address"
                         value={companyDetails.address}
                         onChange={handleCompanyDetailsChange}
-                        required
                         className="py-2"
                       />
                     </Form.Group>

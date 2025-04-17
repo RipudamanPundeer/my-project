@@ -81,8 +81,20 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
       { new: true }
     ).select('-password');
 
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Send back the full user object with the profile data
+    res.json({
+      ...user.toObject(),
+      profile: {
+        ...user.profile,
+        photo: true // Just indicate that photo exists without sending the buffer
+      }
+    });
   } catch (error) {
+    console.error("Error uploading photo:", error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -108,8 +120,22 @@ router.post('/resume', authMiddleware, upload.single('resume'), async (req, res)
       { new: true }
     ).select('-password');
 
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Send back the full user object with the profile data
+    res.json({
+      ...user.toObject(),
+      profile: {
+        ...user.profile,
+        resume: {
+          filename: req.file.originalname // Just send filename without the buffer
+        }
+      }
+    });
   } catch (error) {
+    console.error("Error uploading resume:", error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
