@@ -20,6 +20,8 @@ function CodingProblem() {
   const [modalMessage, setModalMessage] = useState('');
   const [modalVariant, setModalVariant] = useState('danger');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showConfirmExitModal, setShowConfirmExitModal] = useState(false);
+  const [tabSwitchModalShow, setTabSwitchModalShow] = useState(false);
 
   // Fullscreen mode handlers
   const enterFullscreen = () => {
@@ -33,6 +35,11 @@ function CodingProblem() {
     }
     setIsFullscreen(true);
     setShowStartModal(false);
+    // Hide navbar when entering fullscreen
+    const navbar = document.querySelector('.navbar-main');
+    if (navbar) {
+      navbar.style.display = 'none';
+    }
   };
 
   const exitFullscreen = () => {
@@ -44,6 +51,11 @@ function CodingProblem() {
       document.msExitFullscreen();
     }
     setIsFullscreen(false);
+    // Show navbar when exiting fullscreen
+    const navbar = document.querySelector('.navbar-main');
+    if (navbar) {
+      navbar.style.display = 'flex';
+    }
   };
 
   const checkFullscreen = useCallback(() => {
@@ -54,6 +66,11 @@ function CodingProblem() {
       setShowModal(true);
     }
     setIsFullscreen(!!isInFullscreen);
+    // Update navbar visibility
+    const navbar = document.querySelector('.navbar-main');
+    if (navbar) {
+      navbar.style.display = isInFullscreen ? 'none' : 'flex';
+    }
   }, [isFullscreen]);
 
   useEffect(() => {
@@ -76,9 +93,8 @@ function CodingProblem() {
     };
 
     fetchProblem();
-  }, [id, language]);
 
-  useEffect(() => {
+    // Add fullscreen change event listeners
     document.addEventListener('fullscreenchange', checkFullscreen);
     document.addEventListener('webkitfullscreenchange', checkFullscreen);
     document.addEventListener('msfullscreenchange', checkFullscreen);
@@ -87,8 +103,62 @@ function CodingProblem() {
       document.removeEventListener('fullscreenchange', checkFullscreen);
       document.removeEventListener('webkitfullscreenchange', checkFullscreen);
       document.removeEventListener('msfullscreenchange', checkFullscreen);
+      // Ensure navbar is visible when component unmounts
+      const navbar = document.querySelector('.navbar-main');
+      if (navbar) {
+        navbar.style.display = 'flex';
+      }
     };
-  }, [checkFullscreen]);
+  }, [id, language, checkFullscreen]);
+
+  // Add visibility change handler
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isFullscreen) {
+        setCode(''); // Clear the code
+        setTabSwitchModalShow(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isFullscreen]);
+
+  // Setup MutationObserver to consistently hide navbar in fullscreen
+  useEffect(() => {
+    if (isFullscreen) {
+      const navbar = document.querySelector('.navbar-main');
+      if (navbar) {
+        navbar.style.display = 'none';
+      }
+
+      // Create MutationObserver to watch for navbar visibility changes
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.target.style.display !== 'none') {
+            mutation.target.style.display = 'none';
+          }
+        });
+      });
+
+      // Start observing the navbar
+      if (navbar) {
+        observer.observe(navbar, {
+          attributes: true,
+          attributeFilter: ['style']
+        });
+      }
+
+      return () => {
+        observer.disconnect();
+        if (navbar) {
+          navbar.style.display = 'flex';
+        }
+      };
+    }
+  }, [isFullscreen]);
 
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
@@ -98,6 +168,33 @@ function CodingProblem() {
       setCode(template.code);
     }
   };
+
+  // Prevent copy-paste
+  useEffect(() => {
+    const handleCopyPaste = (e) => {
+      if (isFullscreen) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Only add listeners to the specific coding problem editor
+    const editorElement = document.querySelector('.coding-problem-editor .monaco-editor');
+    if (editorElement && isFullscreen) {
+      editorElement.addEventListener('copy', handleCopyPaste);
+      editorElement.addEventListener('paste', handleCopyPaste);
+      editorElement.addEventListener('cut', handleCopyPaste);
+    }
+
+    return () => {
+      const editorElement = document.querySelector('.coding-problem-editor .monaco-editor');
+      if (editorElement) {
+        editorElement.removeEventListener('copy', handleCopyPaste);
+        editorElement.removeEventListener('paste', handleCopyPaste);
+        editorElement.removeEventListener('cut', handleCopyPaste);
+      }
+    };
+  }, [isFullscreen]);
 
   const handleTest = async () => {
     setSubmitting(true);
@@ -149,6 +246,15 @@ function CodingProblem() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleExit = () => {
+    setShowConfirmExitModal(true);
+  };
+
+  const confirmExit = () => {
+    exitFullscreen();
+    navigate('/coding-problems');
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -204,7 +310,14 @@ function CodingProblem() {
       </Modal>
 
       {/* Warning Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal 
+        show={showModal} 
+        onHide={() => {
+          setShowModal(false);
+          enterFullscreen();
+        }} 
+        centered
+      >
         <Modal.Header closeButton className={`bg-${modalVariant} text-white`}>
           <Modal.Title>Warning</Modal.Title>
         </Modal.Header>
@@ -214,9 +327,7 @@ function CodingProblem() {
             variant={modalVariant} 
             onClick={() => {
               setShowModal(false);
-              if (!isFullscreen) {
-                enterFullscreen();
-              }
+              enterFullscreen();
             }}
           >
             Return to Fullscreen
@@ -236,6 +347,47 @@ function CodingProblem() {
             <p>Redirecting to problems list...</p>
           </div>
         </Modal.Body>
+      </Modal>
+
+      {/* Exit Confirmation Modal */}
+      <Modal show={showConfirmExitModal} onHide={() => setShowConfirmExitModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Exit</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to exit? Your progress will not be saved.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmExitModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={confirmExit}>
+            Exit
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Tab Switch Warning Modal */}
+      <Modal 
+        show={tabSwitchModalShow} 
+        onHide={() => setTabSwitchModalShow(false)}
+        centered
+      >
+        <Modal.Header closeButton className="bg-warning text-white">
+          <Modal.Title>Warning: Tab Switch Detected</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle text-warning" style={{ fontSize: '48px' }}></i>
+            <h4 className="mt-3">Tab switching is discouraged</h4>
+            <p>Your code has been cleared as a precautionary measure against cheating.</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setTabSwitchModalShow(false)}>
+            Understood
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       <Container fluid>
@@ -294,24 +446,32 @@ function CodingProblem() {
             <Card className="custom-card mb-4">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="btn-group">
+                  <div className="d-flex align-items-center">
+                    <div className="btn-group me-3">
+                      <Button 
+                        variant={language === 'javascript' ? 'primary' : 'outline-primary'}
+                        onClick={() => handleLanguageChange('javascript')}
+                      >
+                        JavaScript
+                      </Button>
+                      <Button 
+                        variant={language === 'python' ? 'primary' : 'outline-primary'}
+                        onClick={() => handleLanguageChange('python')}
+                      >
+                        Python
+                      </Button>
+                      <Button 
+                        variant={language === 'java' ? 'primary' : 'outline-primary'}
+                        onClick={() => handleLanguageChange('java')}
+                      >
+                        Java
+                      </Button>
+                    </div>
                     <Button 
-                      variant={language === 'javascript' ? 'primary' : 'outline-primary'}
-                      onClick={() => handleLanguageChange('javascript')}
+                      variant="danger" 
+                      onClick={handleExit}
                     >
-                      JavaScript
-                    </Button>
-                    <Button 
-                      variant={language === 'python' ? 'primary' : 'outline-primary'}
-                      onClick={() => handleLanguageChange('python')}
-                    >
-                      Python
-                    </Button>
-                    <Button 
-                      variant={language === 'java' ? 'primary' : 'outline-primary'}
-                      onClick={() => handleLanguageChange('java')}
-                    >
-                      Java
+                      Exit
                     </Button>
                   </div>
                   <div>
@@ -333,7 +493,7 @@ function CodingProblem() {
                   </div>
                 </div>
 
-                <div style={{ border: '1px solid #ccc', borderRadius: '4px' }}>
+                <div style={{ border: '1px solid #ccc', borderRadius: '4px' }} className="coding-problem-editor">
                   <Editor
                     height="500px"
                     language={language}
@@ -347,6 +507,13 @@ function CodingProblem() {
                       automaticLayout: true,
                       wordWrap: 'on',
                       scrollBeyondLastLine: false,
+                      // Only disable features when in fullscreen mode
+                      contextmenu: !isFullscreen,
+                      quickSuggestions: !isFullscreen,
+                      // Additional restrictions for coding problem
+                      copyWithSyntaxHighlighting: !isFullscreen,
+                      multiCursorPaste: !isFullscreen,
+                      dragAndDrop: !isFullscreen,
                     }}
                   />
                 </div>
