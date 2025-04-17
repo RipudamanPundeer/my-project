@@ -18,10 +18,13 @@ const companySchema = new mongoose.Schema({
     twitter: String
   },
   contactInfo: {
-    email: { type: String, required: false },
+    email: { type: String },
     phone: String,
     address: String
   }
 }, { timestamps: true });
+
+// Add compound index for userId to ensure one company per user
+companySchema.index({ userId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Company', companySchema);

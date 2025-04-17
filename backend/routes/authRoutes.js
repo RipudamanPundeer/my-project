@@ -22,16 +22,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     // Create user
     const user = new User({
       name,
       email,
-      password: hashedPassword,
+      password: await bcrypt.hash(password, 10),
       role: role || 'candidate'
     });
+
     await user.save();
 
     // If registering as company, create company profile
@@ -50,15 +48,20 @@ router.post('/register', async (req, res) => {
         website: companyDetails.website,
         description: companyDetails.description,
         contactInfo: {
-          email: email, // Use user's email as company contact email
+          email: email, // Use the registration email
           phone: companyDetails.phone,
           address: companyDetails.address
+        },
+        socialMedia: {
+          linkedIn: companyDetails.linkedIn,
+          twitter: companyDetails.twitter
         }
       });
 
       try {
         await company.save();
       } catch (companyError) {
+        console.error('Company creation error:', companyError);
         await User.findByIdAndDelete(user._id); // Rollback user creation if company creation fails
         throw companyError;
       }
