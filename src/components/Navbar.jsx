@@ -19,18 +19,17 @@ function AppNavbar() {
 
   useEffect(() => {
     setImageError(false);
-    setTimestamp(Date.now()); // Update timestamp when user changes
     if (user?.role === 'company' && user?.companyDetails?.logo) {
-      setCurrentPhotoSrc(`http://localhost:5000/api/company/logo/${user.companyDetails._id}?t=${timestamp}`);
+      setCurrentPhotoSrc(`http://localhost:5000/api/company/logo/${user.companyDetails._id}`);
     } else if (user?.role === 'candidate' && user?.profile?.photo) {
-      setCurrentPhotoSrc(`http://localhost:5000/api/profile/photo/${user._id}?t=${timestamp}`);
+      setCurrentPhotoSrc(`http://localhost:5000/api/profile/photo/${user._id}`);
     } else {
       setCurrentPhotoSrc(null);
     }
-  }, [user, timestamp]);
+  }, [user]);
 
   const getProfileImage = () => {
-    if (currentPhotoSrc && !imageError) {
+    if (!imageError && currentPhotoSrc) {
       return currentPhotoSrc;
     }
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`;

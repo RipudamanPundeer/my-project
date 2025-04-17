@@ -90,16 +90,13 @@ function CompanyProfile() {
           'Content-Type': 'multipart/form-data'
         }
       });
-      setMessage({ text: 'Logo updated successfully! Refreshing...', type: 'success' });
+      setMessage({ text: 'Logo updated successfully!', type: 'success' });
       // Update the user context with the new logo information
       const updatedUser = {
         ...user,
         companyDetails: response.data
       };
       updateUserProfile(updatedUser);
-      setTimeout(() => {
-        window.location.reload(); // Force a full page reload after a short delay
-      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to update logo', type: 'danger' });
     }
@@ -111,7 +108,7 @@ function CompanyProfile() {
       const response = await axios.delete('http://localhost:5000/api/company/logo', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setMessage({ text: 'Logo removed successfully! Refreshing...', type: 'success' });
+      setMessage({ text: 'Logo removed successfully!', type: 'success' });
       setLogoPreview(null);
       setLogo(null);
       // Update the user context with the updated company data
@@ -120,9 +117,6 @@ function CompanyProfile() {
         companyDetails: response.data
       };
       updateUserProfile(updatedUser);
-      setTimeout(() => {
-        window.location.reload(); // Force a full page reload after a short delay
-      }, 500);
     } catch (error) {
       setMessage({ text: 'Failed to remove logo', type: 'danger' });
     }

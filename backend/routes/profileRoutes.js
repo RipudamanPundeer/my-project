@@ -85,14 +85,8 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Send back the full user object with the profile data
-    res.json({
-      ...user.toObject(),
-      profile: {
-        ...user.profile,
-        photo: true // Just indicate that photo exists without sending the buffer
-      }
-    });
+    // Send back the complete user object like the company route does
+    res.json(user);
   } catch (error) {
     console.error("Error uploading photo:", error);
     res.status(500).json({ message: 'Server Error' });
