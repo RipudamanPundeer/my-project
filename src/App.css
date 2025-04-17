@@ -639,3 +639,34 @@ html {
   color: #6c757d;
   z-index: 1;
 }
+
+/* Prevent text selection in fullscreen mode */
+.coding-problem-editor:fullscreen {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+.coding-problem-editor:-webkit-full-screen {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.coding-problem-editor:-moz-full-screen {
+  user-select: none !important;
+  -moz-user-select: none !important;
+}
+
+.coding-problem-editor:-ms-fullscreen {
+  user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Override Monaco Editor selection styles in fullscreen */
+.coding-problem-editor:fullscreen .monaco-editor .selected-text {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}

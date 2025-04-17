@@ -126,6 +126,77 @@ function CodingProblem() {
     };
   }, [isFullscreen]);
 
+  // Prevent copy-paste
+  useEffect(() => {
+    const handleCopyPaste = (e) => {
+      if (isFullscreen) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Add listeners only to the coding problem editor container in fullscreen mode
+    const editorElement = document.querySelector('.coding-problem-editor');
+    if (editorElement && isFullscreen) {
+      const preventEvent = (e) => {
+        if (e.target.closest('.coding-problem-editor')) {
+          handleCopyPaste(e);
+        }
+      };
+
+      // Add event listeners to the editor container
+      editorElement.addEventListener('copy', preventEvent);
+      editorElement.addEventListener('paste', preventEvent);
+      editorElement.addEventListener('cut', preventEvent);
+
+      // Also prevent right-click context menu in fullscreen mode
+      editorElement.addEventListener('contextmenu', preventEvent);
+
+      return () => {
+        editorElement.removeEventListener('copy', preventEvent);
+        editorElement.removeEventListener('paste', preventEvent);
+        editorElement.removeEventListener('cut', preventEvent);
+        editorElement.removeEventListener('contextmenu', preventEvent);
+      };
+    }
+  }, [isFullscreen]);
+
+  // Prevent copy-paste at keyboard level
+  useEffect(() => {
+    const preventKeyboardCopyPaste = (e) => {
+      if (isFullscreen && (e.ctrlKey || e.metaKey)) {
+        if (['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }
+    };
+
+    // Add global keyboard listener when in fullscreen
+    if (isFullscreen) {
+      window.addEventListener('keydown', preventKeyboardCopyPaste, true);
+      return () => {
+        window.removeEventListener('keydown', preventKeyboardCopyPaste, true);
+      };
+    }
+  }, [isFullscreen]);
+
+  // Prevent right-click context menu
+  useEffect(() => {
+    const preventContextMenu = (e) => {
+      if (isFullscreen && e.target.closest('.coding-problem-editor')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener('contextmenu', preventContextMenu, true);
+    return () => {
+      document.removeEventListener('contextmenu', preventContextMenu, true);
+    };
+  }, [isFullscreen]);
+
   // Setup MutationObserver to consistently hide navbar in fullscreen
   useEffect(() => {
     if (isFullscreen) {
@@ -168,33 +239,6 @@ function CodingProblem() {
       setCode(template.code);
     }
   };
-
-  // Prevent copy-paste
-  useEffect(() => {
-    const handleCopyPaste = (e) => {
-      if (isFullscreen) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    // Only add listeners to the specific coding problem editor
-    const editorElement = document.querySelector('.coding-problem-editor .monaco-editor');
-    if (editorElement && isFullscreen) {
-      editorElement.addEventListener('copy', handleCopyPaste);
-      editorElement.addEventListener('paste', handleCopyPaste);
-      editorElement.addEventListener('cut', handleCopyPaste);
-    }
-
-    return () => {
-      const editorElement = document.querySelector('.coding-problem-editor .monaco-editor');
-      if (editorElement) {
-        editorElement.removeEventListener('copy', handleCopyPaste);
-        editorElement.removeEventListener('paste', handleCopyPaste);
-        editorElement.removeEventListener('cut', handleCopyPaste);
-      }
-    };
-  }, [isFullscreen]);
 
   const handleTest = async () => {
     setSubmitting(true);
@@ -500,6 +544,42 @@ function CodingProblem() {
                     value={code}
                     onChange={setCode}
                     theme="vs-dark"
+                    beforeMount={(monaco) => {
+                      // Add key bindings to prevent copy/paste when in fullscreen
+                      if (isFullscreen) {
+                        // Disable all clipboard-related commands
+                        const clipboardCommands = [
+                          'editor.action.clipboardCopyAction',
+                          'editor.action.clipboardCutAction',
+                          'editor.action.clipboardPasteAction',
+                          'editor.action.copyLinesDownAction',
+                          'editor.action.copyLinesUpAction',
+                          'editor.action.duplicateSelection'
+                        ];
+                        
+                        clipboardCommands.forEach(command => {
+                          monaco.editor.addKeybindingRule({
+                            keybinding: monaco.KeyCode.KEY_IN_SEQUENCE,
+                            command: null,
+                            when: 'editorTextFocus'
+                          });
+                        });
+
+                        // Disable standard keyboard shortcuts
+                        monaco.editor.addKeybindingRule({
+                          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC,
+                          command: null
+                        });
+                        monaco.editor.addKeybindingRule({
+                          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
+                          command: null
+                        });
+                        monaco.editor.addKeybindingRule({
+                          keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX,
+                          command: null
+                        });
+                      }
+                    }}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
@@ -514,6 +594,18 @@ function CodingProblem() {
                       copyWithSyntaxHighlighting: !isFullscreen,
                       multiCursorPaste: !isFullscreen,
                       dragAndDrop: !isFullscreen,
+                      // Disable clipboard operations in fullscreen
+                      readOnly: isFullscreen ? false : undefined,
+                      domReadOnly: isFullscreen,
+                      disableEditorWarnings: isFullscreen,
+                      // Additional clipboard security
+                      selectionClipboard: false,
+                      // Disable additional features that could be used for copying
+                      find: !isFullscreen,
+                      folding: !isFullscreen,
+                      hover: !isFullscreen,
+                      links: !isFullscreen,
+                      suggest: !isFullscreen
                     }}
                   />
                 </div>
