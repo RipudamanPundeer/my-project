@@ -46,7 +46,9 @@ NODE_ENV=development
 Start Backend:
 ```bash
 cd backend
-npm start
+node ./seedTests.js
+node ./seedCodingProblems.js
+node ./server.js
 ```
 
 Start Frontend (in a new terminal):
